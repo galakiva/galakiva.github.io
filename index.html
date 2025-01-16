@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Post Prompt Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #F5F5F5;
+            color: #212121;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #FFFFFF;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #1976D2;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        select, textarea, button {
+            width: 100%;
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #BDBDBD;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #2196F3;
+            color: #FFFFFF;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1976D2;
+        }
+        .output {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #E3F2FD;
+            border: 1px solid #BBDEFB;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Personal Post Prompt Generator</h1>
+
+        <label for="writingStyle">Select Writing Style:</label>
+        <select id="writingStyle">
+            <option value="Professional">Professional</option>
+            <option value="Casual">Casual</option>
+            <option value="Humorous">Humorous</option>
+            <option value="Inspirational">Inspirational</option>
+        </select>
+
+        <label for="persona">Select Persona:</label>
+        <select id="persona">
+            <option value="Gary Vaynerchuck">Gary Vaynerchuck</option>
+        </select>
+
+        <label for="postTemplate">Select Post Template:</label>
+        <select id="postTemplate">
+            <option value="Personal Post">Personal Post</option>
+            <option value="Thought Leadership Video Script">Thought Leadership Video Script</option>
+        </select>
+
+        <label for="healingPersona">Select Healing Persona:</label>
+        <select id="healingPersona">
+            <option value="Psychedelic Healing Therapist">Psychedelic Healing Therapist</option>
+            <option value="Psychedelic Healing Thought Leader">Psychedelic Healing Thought Leader</option>
+            <option value="Psychedelic Healing Advocate">Psychedelic Healing Advocate</option>
+        </select>
+
+        <label for="postContent">Enter Post Content (max 256 characters):</label>
+        <textarea id="postContent" maxlength="256" placeholder="Type your post content here..."></textarea>
+
+        <button id="generatePrompt">Generate Prompt</button>
+
+        <div id="output" class="output" style="display: none;"></div>
+    </div>
+
+    <script>
+        (function () {
+            const writingStyleEl = document.getElementById('writingStyle');
+            const personaEl = document.getElementById('persona');
+            const postTemplateEl = document.getElementById('postTemplate');
+            const healingPersonaEl = document.getElementById('healingPersona');
+            const postContentEl = document.getElementById('postContent');
+            const generateButton = document.getElementById('generatePrompt');
+            const outputEl = document.getElementById('output');
+
+            generateButton.addEventListener('click', function () {
+                const writingStyle = writingStyleEl.value;
+                const persona = personaEl.value;
+                const postTemplate = postTemplateEl.value;
+                const healingPersona = healingPersonaEl.value;
+                const postContent = postContentEl.value.trim();
+
+                if (!postContent) {
+                    alert('Please enter post content.');
+                    return;
+                }
+
+                const prompt = `Using the persona of ${persona} and the healing perspective of ${healingPersona}, create a ${writingStyle.toLowerCase()} ${postTemplate.toLowerCase()} based on the following content: "${postContent}"`;
+
+                outputEl.textContent = prompt;
+                outputEl.style.display = 'block';
+            });
+        })();
+    </script>
+</body>
+</html>
