@@ -97,6 +97,7 @@
         <button id="generatePrompt">Generate Prompt</button>
 
         <div id="output" class="output" style="display: none;"></div>
+        <button id="copyToClipboard" style="display: none;">Copy to Clipboard</button>
     </div>
 
     <script>
@@ -108,6 +109,7 @@
             const postContentEl = document.getElementById('postContent');
             const generateButton = document.getElementById('generatePrompt');
             const outputEl = document.getElementById('output');
+            const copyButton = document.getElementById('copyToClipboard');
 
             generateButton.addEventListener('click', function () {
                 const writingStyle = writingStyleEl.value;
@@ -125,6 +127,16 @@
 
                 outputEl.textContent = prompt;
                 outputEl.style.display = 'block';
+                copyButton.style.display = 'block';
+            });
+
+            copyButton.addEventListener('click', function () {
+                const prompt = outputEl.textContent;
+                navigator.clipboard.writeText(prompt).then(() => {
+                    alert('Prompt copied to clipboard!');
+                }).catch(() => {
+                    alert('Failed to copy to clipboard.');
+                });
             });
         })();
     </script>
