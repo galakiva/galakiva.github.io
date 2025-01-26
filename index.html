@@ -119,11 +119,6 @@
                 });
             }
 
-            function fetchWritingStyleContent(style) {
-                const filePath = `writingStyles/${style.replace(/\s+/g, '')}.txt`;
-                return fetch(filePath).then(response => response.text());
-            }
-
             generateButton.addEventListener('click', function () {
                 fetch('prompts/prompt.txt')
                     .then(response => response.text())
@@ -138,21 +133,15 @@
                             return;
                         }
 
-                        fetchWritingStyleContent(writingStyle)
-                            .then(styleContent => {
-                                const prompt = promptTemplate
-                                    .replace('{{persona}}', persona)
-                                    .replace('{{writingStyle}}', styleContent)
-                                    .replace('{{postTemplate}}', postTemplate.toLowerCase())
-                                    .replace('{{postContent}}', postContent);
+                        const prompt = promptTemplate
+                            .replace('{{persona}}', persona)
+                            .replace('{{writingStyle}}', writingStyle.toLowerCase())
+                            .replace('{{postTemplate}}', postTemplate.toLowerCase())
+                            .replace('{{postContent}}', postContent);
 
-                                outputEl.textContent = prompt;
-                                outputEl.style.display = 'block';
-                                copyButton.style.display = 'block';
-                            })
-                            .catch(() => {
-                                alert('Failed to load writing style content.');
-                            });
+                        outputEl.textContent = prompt;
+                        outputEl.style.display = 'block';
+                        copyButton.style.display = 'block';
                     })
                     .catch(() => {
                         alert('Failed to load prompt template.');
