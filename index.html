@@ -65,27 +65,19 @@
     <div class="container">
         <h1>Personal Post Prompt Generator</h1>
 
-        <label for="writingStyle">Select Writing Style:</label>
-        <select id="writingStyle">
-            <option value="Professional">Professional</option>
-            <option value="Casual">Casual</option>
-            <option value="Humorous">Humorous</option>
-            <option value="Inspirational">Inspirational</option>
-        </select>
-
-        <label for="persona">Select Persona:</label>
-        <select id="persona">
-            <option value="Gary Vaynerchuck">Gary Vaynerchuck</option>
-        </select>
-
         <label for="postTemplate">Select Post Template:</label>
         <select id="postTemplate">
             <option value="Personal Post">Personal Post</option>
             <option value="Thought Leadership Video Script">Thought Leadership Video Script</option>
         </select>
 
-        <label for="healingPersona">Select Healing Persona:</label>
-        <select id="healingPersona">
+        <label for="writingStyle">Select Writing Style:</label>
+        <select id="writingStyle">
+            <option value="Gary Vaynerchuck">Gary Vaynerchuck</option>
+            <option value="Double Blind Magazine">Casual</option>
+        </select>
+
+        <label for="persona">Select Persona:</label>
             <option value="Psychedelic Healing Therapist">Psychedelic Healing Therapist</option>
             <option value="Psychedelic Healing Thought Leader">Psychedelic Healing Thought Leader</option>
             <option value="Psychedelic Healing Advocate">Psychedelic Healing Advocate</option>
@@ -105,7 +97,6 @@
             const writingStyleEl = document.getElementById('writingStyle');
             const personaEl = document.getElementById('persona');
             const postTemplateEl = document.getElementById('postTemplate');
-            const healingPersonaEl = document.getElementById('healingPersona');
             const postContentEl = document.getElementById('postContent');
             const generateButton = document.getElementById('generatePrompt');
             const outputEl = document.getElementById('output');
@@ -115,7 +106,6 @@
                 const writingStyle = writingStyleEl.value;
                 const persona = personaEl.value;
                 const postTemplate = postTemplateEl.value;
-                const healingPersona = healingPersonaEl.value;
                 const postContent = postContentEl.value.trim();
 
                 if (!postContent) {
@@ -123,7 +113,7 @@
                     return;
                 }
 
-                const prompt = `Using the persona of ${persona} and the healing perspective of ${healingPersona}, create a ${writingStyle.toLowerCase()} ${postTemplate.toLowerCase()} based on the following content: "${postContent}"`;
+                const prompt = `Using the persona of a ${persona}, create a ${writingStyle.toLowerCase()} ${postTemplate.toLowerCase()} based on the following content: "${postContent}"`;
 
                 outputEl.textContent = prompt;
                 outputEl.style.display = 'block';
