@@ -120,7 +120,7 @@
             }
 
             generateButton.addEventListener('click', function () {
-                fetch('prompt.txt')
+                fetch('prompts/prompt.txt')
                     .then(response => response.text())
                     .then(promptTemplate => {
                         const writingStyle = writingStyleEl.value;
