@@ -66,23 +66,13 @@
         <h1>Personal Post Prompt Generator</h1>
 
         <label for="postTemplate">Select Post Template:</label>
-        <select id="postTemplate">
-            <option value="Personal Post">Personal Post</option>
-            <option value="Thought Leadership Video Script">Thought Leadership Video Script</option>
-        </select>
+        <select id="postTemplate"></select>
 
         <label for="writingStyle">Select Writing Style:</label>
-        <select id="writingStyle">
-            <option value="Gary Vaynerchuck">Gary Vaynerchuck</option>
-            <option value="Double Blind Magazine">Double Blind Magazine</option>
-        </select>
+        <select id="writingStyle"></select>
 
         <label for="persona">Select Persona:</label>
-        <select id="persona">
-            <option value="Psychedelic Healing Therapist">Psychedelic Healing Therapist</option>
-            <option value="Psychedelic Healing Thought Leader">Psychedelic Healing Thought Leader</option>
-            <option value="Psychedelic Healing Advocate">Psychedelic Healing Advocate</option>
-        </select>
+        <select id="persona"></select>
 
         <label for="postContent">Enter Post Content (max 256 characters):</label>
         <textarea id="postContent" maxlength="256" placeholder="Type your post content here..."></textarea>
@@ -95,6 +85,22 @@
 
     <script>
         (function () {
+            const writingStyles = [
+                { value: "Gary Vaynerchuck", label: "Gary Vaynerchuck" },
+                { value: "Double Blind Magazine", label: "Double Blind Magazine" }
+            ];
+
+            const personas = [
+                { value: "Psychedelic Healing Therapist", label: "Psychedelic Healing Therapist" },
+                { value: "Psychedelic Healing Thought Leader", label: "Psychedelic Healing Thought Leader" },
+                { value: "Psychedelic Healing Advocate", label: "Psychedelic Healing Advocate" }
+            ];
+
+            const postTemplates = [
+                { value: "Personal Post", label: "Personal Post" },
+                { value: "Thought Leadership Video Script", label: "Thought Leadership Video Script" }
+            ];
+
             const writingStyleEl = document.getElementById('writingStyle');
             const personaEl = document.getElementById('persona');
             const postTemplateEl = document.getElementById('postTemplate');
@@ -102,6 +108,16 @@
             const generateButton = document.getElementById('generatePrompt');
             const outputEl = document.getElementById('output');
             const copyButton = document.getElementById('copyToClipboard');
+
+            function populateSelect(element, options) {
+                element.innerHTML = '';
+                options.forEach(option => {
+                    const opt = document.createElement('option');
+                    opt.value = option.value;
+                    opt.textContent = option.label;
+                    element.appendChild(opt);
+                });
+            }
 
             generateButton.addEventListener('click', function () {
                 const writingStyle = writingStyleEl.value;
@@ -129,6 +145,10 @@
                     alert('Failed to copy to clipboard.');
                 });
             });
+
+            populateSelect(writingStyleEl, writingStyles);
+            populateSelect(personaEl, personas);
+            populateSelect(postTemplateEl, postTemplates);
         })();
     </script>
 </body>
