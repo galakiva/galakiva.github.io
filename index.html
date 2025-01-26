@@ -120,21 +120,32 @@
             }
 
             generateButton.addEventListener('click', function () {
-                const writingStyle = writingStyleEl.value;
-                const persona = personaEl.value;
-                const postTemplate = postTemplateEl.value;
-                const postContent = postContentEl.value.trim();
+                fetch('prompt.txt')
+                    .then(response => response.text())
+                    .then(promptTemplate => {
+                        const writingStyle = writingStyleEl.value;
+                        const persona = personaEl.value;
+                        const postTemplate = postTemplateEl.value;
+                        const postContent = postContentEl.value.trim();
 
-                if (!postContent) {
-                    alert('Please enter post content.');
-                    return;
-                }
+                        if (!postContent) {
+                            alert('Please enter post content.');
+                            return;
+                        }
 
-                const prompt = `Using the persona of a ${persona}, create a ${writingStyle.toLowerCase()} ${postTemplate.toLowerCase()} based on the following content: "${postContent}"`;
+                        const prompt = promptTemplate
+                            .replace('{{persona}}', persona)
+                            .replace('{{writingStyle}}', writingStyle.toLowerCase())
+                            .replace('{{postTemplate}}', postTemplate.toLowerCase())
+                            .replace('{{postContent}}', postContent);
 
-                outputEl.textContent = prompt;
-                outputEl.style.display = 'block';
-                copyButton.style.display = 'block';
+                        outputEl.textContent = prompt;
+                        outputEl.style.display = 'block';
+                        copyButton.style.display = 'block';
+                    })
+                    .catch(() => {
+                        alert('Failed to load prompt template.');
+                    });
             });
 
             copyButton.addEventListener('click', function () {
