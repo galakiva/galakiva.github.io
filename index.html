@@ -121,7 +121,12 @@
 
             function fetchWritingStyleData(style) {
                 const filePath = `writingStyles/${style.replace(/\s+/g, '')}.json`;
-                return fetch(filePath).then(response => response.json());
+                return fetch(filePath).then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Could not fetch file: ${filePath}`);
+                    }
+                    return response.json();
+                });
             }
 
             generateButton.addEventListener('click', function () {
@@ -150,8 +155,8 @@
                                 outputEl.style.display = 'block';
                                 copyButton.style.display = 'block';
                             })
-                            .catch(() => {
-                                alert('Failed to load writing style data.');
+                            .catch(err => {
+                                alert(`Failed to load writing style data: ${err.message}`);
                             });
                     })
                     .catch(() => {
