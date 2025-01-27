@@ -86,7 +86,7 @@
     <script>
         (function () {
             const writingStyles = [
-                { value: "GaryVaynerchuck", label: "Gary Vaynerchuck" },
+                { value: "Gary Vaynerchuck", label: "Gary Vaynerchuck" },
                 { value: "Double Blind Magazine", label: "Double Blind Magazine" }
             ];
 
@@ -119,6 +119,11 @@
                 });
             }
 
+            function fetchWritingStyleData(style) {
+                const filePath = `writingStyles/${style.replace(/\s+/g, '')}.json`;
+                return fetch(filePath).then(response => response.json());
+            }
+
             generateButton.addEventListener('click', function () {
                 fetch('prompts/prompt.txt')
                     .then(response => response.text())
@@ -133,15 +138,21 @@
                             return;
                         }
 
-                        const prompt = promptTemplate
-                            .replace('{{persona}}', persona)
-                            .replace('{{writingStyle}}', writingStyle.toLowerCase())
-                            .replace('{{postTemplate}}', postTemplate.toLowerCase())
-                            .replace('{{postContent}}', postContent);
+                        fetchWritingStyleData(writingStyle)
+                            .then(styleData => {
+                                const prompt = promptTemplate
+                                    .replace('{{persona}}', persona)
+                                    .replace('{{writingStyle}}', styleData.description || writingStyle.toLowerCase())
+                                    .replace('{{postTemplate}}', postTemplate.toLowerCase())
+                                    .replace('{{postContent}}', postContent);
 
-                        outputEl.textContent = prompt;
-                        outputEl.style.display = 'block';
-                        copyButton.style.display = 'block';
+                                outputEl.textContent = prompt;
+                                outputEl.style.display = 'block';
+                                copyButton.style.display = 'block';
+                            })
+                            .catch(() => {
+                                alert('Failed to load writing style data.');
+                            });
                     })
                     .catch(() => {
                         alert('Failed to load prompt template.');
