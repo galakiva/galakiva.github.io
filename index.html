@@ -89,22 +89,10 @@
 
     <script>
         (function () {
-            const writingStyles = [
-                { value: "Gary Vaynerchuck", label: "Gary Vaynerchuck" },
-                { value: "Double Blind Magazine", label: "Double Blind Magazine" },
-                { value: "Greg Shanken", label: "Greg Shanken" }
-            ];
-
-            const personas = [
-                { value: "Psychedelic Healing Therapist", label: "Psychedelic Healing Therapist" },
-                { value: "Psychedelic Healing Thought Leader", label: "Psychedelic Healing Thought Leader" },
-                { value: "Psychedelic Healing Advocate", label: "Psychedelic Healing Advocate" }
-            ];
-
-            const postTemplates = [
-                { value: "Linkedin Post", label: "Linkedin Post" },
-                { value: "Thought Leadership Video", label: "Thought Leadership Video" }
-            ];
+            // In-memory storage for data
+            let writingStyles = [];
+            let personas = [];
+            let postTemplates = [];
 
             const writingStyleEl = document.getElementById('writingStyle');
             const personaEl = document.getElementById('persona');
@@ -125,14 +113,24 @@
                 });
             }
 
-            function fetchData(type, value) {
-                const filePath = `${type}/${value.replace(/\s+/g, '')}.json`;
-                return fetch(filePath).then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Could not fetch file: ${filePath}`);
-                    }
-                    return response.json();
-                });
+            function loadInitialData() {
+                Promise.all([
+                    fetch('writingStyles.json').then(response => response.json()),
+                    fetch('personas.json').then(response => response.json()),
+                    fetch('postTemplates.json').then(response => response.json())
+                ])
+                    .then(([styles, personasData, templates]) => {
+                        writingStyles = styles;
+                        personas = personasData;
+                        postTemplates = templates;
+
+                        populateSelect(writingStyleEl, writingStyles);
+                        populateSelect(personaEl, personas);
+                        populateSelect(postTemplateEl, postTemplates);
+                    })
+                    .catch(err => {
+                        alert('Failed to load initial data: ' + err.message);
+                    });
             }
 
             function addNewItem() {
@@ -180,25 +178,15 @@
                             return;
                         }
 
-                        Promise.all([
-                            fetchData('writingStyles', writingStyle),
-                            fetchData('personas', persona),
-                            fetchData('postTemplates', postTemplate)
-                        ])
-                            .then(([styleData, personaData, templateData]) => {
-                                const prompt = promptTemplate
-                                    .replace('{{persona}}', personaData.description || persona)
-                                    .replace('{{writingStyle}}', styleData.description || writingStyle)
-                                    .replace('{{postTemplate}}', templateData.description || postTemplate)
-                                    .replace('{{postContent}}', postContent);
+                        const prompt = promptTemplate
+                            .replace('{{persona}}', personas.find(p => p.value === persona)?.label || persona)
+                            .replace('{{writingStyle}}', writingStyles.find(ws => ws.value === writingStyle)?.label || writingStyle)
+                            .replace('{{postTemplate}}', postTemplates.find(pt => pt.value === postTemplate)?.label || postTemplate)
+                            .replace('{{postContent}}', postContent);
 
-                                outputEl.textContent = prompt;
-                                outputEl.style.display = 'block';
-                                copyButton.style.display = 'block';
-                            })
-                            .catch(err => {
-                                alert(`Failed to load data: ${err.message}`);
-                            });
+                        outputEl.textContent = prompt;
+                        outputEl.style.display = 'block';
+                        copyButton.style.display = 'block';
                     })
                     .catch(() => {
                         alert('Failed to load prompt template.');
@@ -216,9 +204,8 @@
                 });
             });
 
-            populateSelect(writingStyleEl, writingStyles);
-            populateSelect(personaEl, personas);
-            populateSelect(postTemplateEl, postTemplates);
+            // Load initial data into memory
+            loadInitialData();
         })();
     </script>
 </body>
