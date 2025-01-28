@@ -119,8 +119,8 @@
                 });
             }
 
-            function fetchWritingStyleData(style) {
-                const filePath = `writingStyles/${style.replace(/\s+/g, '')}.json`;
+            function fetchData(type, value) {
+                const filePath = `${type}/${value.replace(/\s+/g, '')}.json`;
                 return fetch(filePath).then(response => {
                     if (!response.ok) {
                         throw new Error(`Could not fetch file: ${filePath}`);
@@ -143,12 +143,16 @@
                             return;
                         }
 
-                        fetchWritingStyleData(writingStyle)
-                            .then(styleData => {
+                        Promise.all([
+                            fetchData('writingStyles', writingStyle),
+                            fetchData('personas', persona),
+                            fetchData('postTemplates', postTemplate)
+                        ])
+                            .then(([styleData, personaData, templateData]) => {
                                 const prompt = promptTemplate
-                                    .replace('{{persona}}', persona)
-                                    .replace('{{writingStyle}}', styleData.description || writingStyle.toLowerCase())
-                                    .replace('{{postTemplate}}', postTemplate.toLowerCase())
+                                    .replace('{{persona}}', personaData.description || persona)
+                                    .replace('{{writingStyle}}', styleData.description || writingStyle)
+                                    .replace('{{postTemplate}}', templateData.description || postTemplate)
                                     .replace('{{postContent}}', postContent);
 
                                 outputEl.textContent = prompt;
@@ -156,7 +160,7 @@
                                 copyButton.style.display = 'block';
                             })
                             .catch(err => {
-                                alert(`Failed to load writing style data: ${err.message}`);
+                                alert(`Failed to load data: ${err.message}`);
                             });
                     })
                     .catch(() => {
