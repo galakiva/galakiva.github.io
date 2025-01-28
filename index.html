@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Post Prompt Generator</title>
+    <title>Linkedin Post Prompt Generator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -81,6 +81,7 @@
         <textarea id="postContent" maxlength="256" placeholder="Type your post content here..."></textarea>
 
         <button id="generatePrompt">Generate Prompt</button>
+        <button id="addData">Add New Item</button>
 
         <div id="output" class="output" style="display: none;"></div>
         <button id="copyToClipboard" style="display: none;">Copy to Clipboard</button>
@@ -110,6 +111,7 @@
             const postTemplateEl = document.getElementById('postTemplate');
             const postContentEl = document.getElementById('postContent');
             const generateButton = document.getElementById('generatePrompt');
+            const addDataButton = document.getElementById('addData');
             const outputEl = document.getElementById('output');
             const copyButton = document.getElementById('copyToClipboard');
 
@@ -131,6 +133,37 @@
                     }
                     return response.json();
                 });
+            }
+
+            function addNewItem() {
+                const itemType = prompt("Enter the type (writingStyle, persona, postTemplate):");
+                if (!itemType || !['writingStyle', 'persona', 'postTemplate'].includes(itemType)) {
+                    alert("Invalid type entered.");
+                    return;
+                }
+
+                const newValue = prompt("Enter the value (unique identifier):");
+                const newLabel = prompt("Enter the label (display text):");
+
+                if (!newValue || !newLabel) {
+                    alert("Both value and label are required.");
+                    return;
+                }
+
+                const newItem = { value: newValue, label: newLabel };
+
+                if (itemType === 'writingStyle') {
+                    writingStyles.push(newItem);
+                    populateSelect(writingStyleEl, writingStyles);
+                } else if (itemType === 'persona') {
+                    personas.push(newItem);
+                    populateSelect(personaEl, personas);
+                } else if (itemType === 'postTemplate') {
+                    postTemplates.push(newItem);
+                    populateSelect(postTemplateEl, postTemplates);
+                }
+
+                alert(`${itemType} added successfully!`);
             }
 
             generateButton.addEventListener('click', function () {
@@ -171,6 +204,8 @@
                         alert('Failed to load prompt template.');
                     });
             });
+
+            addDataButton.addEventListener('click', addNewItem);
 
             copyButton.addEventListener('click', function () {
                 const prompt = outputEl.textContent;
