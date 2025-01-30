@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linkedin Post Prompt Generator</title>
+    <title>LinkedIn Post Prompt Generator</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -66,7 +66,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Personal Post Prompt Generator</h1>
+        <h1>LinkedIn Post Prompt Generator</h1>
 
         <label for="postTemplate">Select Post Template:</label>
         <select id="postTemplate"></select>
@@ -81,7 +81,7 @@
         <textarea id="postContent" maxlength="256" placeholder="Type your post content here..."></textarea>
 
         <button id="generatePrompt">Generate Prompt</button>
-        <button id="addData">Add New Item</button>
+        <button id="addData">Add New Item(new feature?)</button>
 
         <div id="output" class="output" style="display: none;"></div>
         <button id="copyToClipboard" style="display: none;">Copy to Clipboard</button>
@@ -89,10 +89,22 @@
 
     <script>
         (function () {
-            // In-memory storage for data
-            let writingStyles = [];
-            let personas = [];
-            let postTemplates = [];
+            const writingStyles = [
+                { value: "Gary Vaynerchuck", label: "Gary Vaynerchuck" },
+                { value: "Double Blind Magazine", label: "Double Blind Magazine" },
+                { value: "Greg Shanken", label: "Greg Shanken" }
+            ];
+
+            const personas = [
+                { value: "Psychedelic Healing Therapist", label: "Psychedelic Healing Therapist" },
+                //{ value: "Psychedelic Healing Thought Leader", label: "Psychedelic Healing Thought Leader" },
+                //{ value: "Psychedelic Healing Advocate", label: "Psychedelic Healing Advocate" }
+            ];
+
+            const postTemplates = [
+                { value: "Linkedin Post", label: "Linkedin Post" },
+                { value: "Thought Leadership Video", label: "Thought Leadership Video(In Progress)" }
+            ];
 
             const writingStyleEl = document.getElementById('writingStyle');
             const personaEl = document.getElementById('persona');
@@ -113,24 +125,14 @@
                 });
             }
 
-            function loadInitialData() {
-                Promise.all([
-                    fetch('writingStyles.json').then(response => response.json()),
-                    fetch('personas.json').then(response => response.json()),
-                    fetch('postTemplates.json').then(response => response.json())
-                ])
-                    .then(([styles, personasData, templates]) => {
-                        writingStyles = styles;
-                        personas = personasData;
-                        postTemplates = templates;
-
-                        populateSelect(writingStyleEl, writingStyles);
-                        populateSelect(personaEl, personas);
-                        populateSelect(postTemplateEl, postTemplates);
-                    })
-                    .catch(err => {
-                        alert('Failed to load initial data: ' + err.message);
-                    });
+            function fetchData(type, value) {
+                const filePath = `${type}/${value.replace(/\s+/g, '')}.json`;
+                return fetch(filePath).then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Could not fetch file: ${filePath}`);
+                    }
+                    return response.json();
+                });
             }
 
             function addNewItem() {
@@ -178,15 +180,25 @@
                             return;
                         }
 
-                        const prompt = promptTemplate
-                            .replace('{{persona}}', personas.find(p => p.value === persona)?.label || persona)
-                            .replace('{{writingStyle}}', writingStyles.find(ws => ws.value === writingStyle)?.label || writingStyle)
-                            .replace('{{postTemplate}}', postTemplates.find(pt => pt.value === postTemplate)?.label || postTemplate)
-                            .replace('{{postContent}}', postContent);
+                        Promise.all([
+                            fetchData('writingStyles', writingStyle),
+                            fetchData('personas', persona),
+                            fetchData('postTemplates', postTemplate)
+                        ])
+                            .then(([styleData, personaData, templateData]) => {
+                                const prompt = promptTemplate
+                                    .replace('{{persona}}', personaData.description || persona)
+                                    .replace('{{writingStyle}}', styleData.description || writingStyle)
+                                    .replace('{{postTemplate}}', templateData.description || postTemplate)
+                                    .replace('{{postContent}}', postContent);
 
-                        outputEl.textContent = prompt;
-                        outputEl.style.display = 'block';
-                        copyButton.style.display = 'block';
+                                outputEl.textContent = prompt;
+                                outputEl.style.display = 'block';
+                                copyButton.style.display = 'block';
+                            })
+                            .catch(err => {
+                                alert(`Failed to load data: ${err.message}`);
+                            });
                     })
                     .catch(() => {
                         alert('Failed to load prompt template.');
@@ -204,8 +216,9 @@
                 });
             });
 
-            // Load initial data into memory
-            loadInitialData();
+            populateSelect(writingStyleEl, writingStyles);
+            populateSelect(personaEl, personas);
+            populateSelect(postTemplateEl, postTemplates);
         })();
     </script>
 </body>
