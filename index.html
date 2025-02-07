@@ -273,9 +273,9 @@
                     body: JSON.stringify(data)
                 });
                 const result = await response.json();
-                console.log(result);
+                alert(result);
             } catch (error) {
-                console.error("Error generating video:", error);
+                alert("Error generating video:", error);
             }
         }
 
