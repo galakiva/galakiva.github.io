@@ -61,6 +61,14 @@
             height: 150px;
             overflow-y: auto;
             word-wrap: break-word;
+            display: none;
+        }
+        #copyToClipboard {
+            display: none;
+        }
+        .video-container {
+            display: none;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -81,210 +89,234 @@
         <textarea id="postContent" maxlength="256" placeholder="Type your post content here..."></textarea>
 
         <button id="generatePrompt">Generate Prompt</button>
-        <button id="addData">Add New Item(new feature?)</button>
+        <button id="addData">Add New Item</button>
 
-        <div id="output" class="output" style="display: none;">
-</div>
-<button id="generateVideoButton">Generate Video</button>
-<button id="copyToClipboard" style="display: none;">Copy to Clipboard</button>
+        <div id="output" class="output"></div>
+        <button id="copyToClipboard">Copy to Clipboard</button>
+		
+        <button id="generateVideo">Generate Video</button>
+		<p id="result"></p>
+		
+		<button id="startChecking">Check Status</button>
+		<p id="status">Status: Not started</p>
+		<div id="videoContainer"></div>
+		<p id="videoLink"></p>
+        </div>
     </div>
 
     <script>
-    (function mainFunction() {
-        const writingStyles = [
-            { value: "Gary Vaynerchuck", label: "Gary Vaynerchuck" },
-            { value: "Double Blind Magazine", label: "Double Blind Magazine" },
-            { value: "Greg Shanken", label: "Greg Shanken" }
-        ];
+        document.addEventListener("DOMContentLoaded", function () {
+            const writingStyles = [
+                { value: "Gary Vaynerchuck", label: "Gary Vaynerchuck" },
+                { value: "Double Blind Magazine", label: "Double Blind Magazine" },
+                { value: "Greg Shanken", label: "Greg Shanken" }
+            ];
 
-        const personas = [
-            { value: "Psychedelic Healing Therapist", label: "Psychedelic Healing Therapist" }
-        ];
+            const personas = [
+                { value: "Psychedelic Healing Therapist", label: "Psychedelic Healing Therapist" }
+            ];
 
-        const postTemplates = [
-            { value: "Linkedin Post", label: "Linkedin Post" },
-            { value: "Thought Leadership Video", label: "Thought Leadership Video(In Progress)" }
-        ];
+            const postTemplates = [
+                { value: "Linkedin Post", label: "Linkedin Post" },
+                { value: "Thought Leadership Video", label: "Thought Leadership Video (In Progress)" }
+            ];
 
-        const writingStyleEl = document.getElementById('writingStyle');
-        const personaEl = document.getElementById('persona');
-        const postTemplateEl = document.getElementById('postTemplate');
-        const postContentEl = document.getElementById('postContent');
-        const generateButton = document.getElementById('generatePrompt');
-        const addDataButton = document.getElementById('addData');
-        const outputEl = document.getElementById('output');
-        const copyButton = document.getElementById('copyToClipboard');
-        const generateVideoButton = document.getElementById('generateVideoButton');
+            const writingStyleEl = document.getElementById('writingStyle');
+            const personaEl = document.getElementById('persona');
+            const postTemplateEl = document.getElementById('postTemplate');
+            const postContentEl = document.getElementById('postContent');
+            const generateButton = document.getElementById('generatePrompt');
+			const generateVideoButton = document.getElementById('generateVideo');
+            const addDataButton = document.getElementById('addData');
+            const outputEl = document.getElementById('output');
+            const copyButton = document.getElementById('copyToClipboard');
+			const videoEl = document.getElementById('generatedVideo');
+			const startCheckingButton = document.getElementById('startChecking');
+			let interval;
 
-        function populateSelect(element, options) {
-            element.innerHTML = '';
-            options.forEach(option => {
-                const opt = document.createElement('option');
-                opt.value = option.value;
-                opt.textContent = option.label;
-                element.appendChild(opt);
-            });
-        }
 
-        async function fetchData(type, value) {
-            const sanitizedValue = value.replace(/\s+/g, '_'); // Replace spaces with underscores for better file matching
-            const filePath = `${type}/${sanitizedValue}.json`;
-
-            try {
-                const response = await fetch(filePath);
-                if (!response.ok) throw new Error(`Could not fetch ${filePath}`);
-                return await response.json();
-            } catch (error) {
-                console.error(error);
-                showError(`Failed to fetch ${type} data. Try again.`);
-                return {};
-            }
-        }
-
-        function showError(message) {
-            outputEl.textContent = message;
-            outputEl.style.backgroundColor = "#FFCDD2"; // Light red for errors
-            outputEl.style.display = "block";
-            copyButton.style.display = "none"; // Hide copy button if an error occurs
-        }
-
-        function showLoading(button) {
-            button.disabled = true;
-            button.textContent = "Loading...";
-        }
-
-        function hideLoading(button, originalText) {
-            button.disabled = false;
-            button.textContent = originalText;
-        }
-
-        generateButton.addEventListener('click', async function () {
-            if (!postContentEl.value.trim()) {
-                showError('Please enter post content.');
-                return;
-            }
-
-            showLoading(generateButton);
-
-            try {
-                const promptTemplateResponse = await fetch('prompts/prompt.txt');
-                if (!promptTemplateResponse.ok) throw new Error("Failed to load prompt template.");
-                const promptTemplate = await promptTemplateResponse.text();
-
-                const [styleData, personaData, templateData] = await Promise.all([
-                    fetchData('writingStyles', writingStyleEl.value),
-                    fetchData('personas', personaEl.value),
-                    fetchData('postTemplates', postTemplateEl.value)
-                ]);
-
-                const prompt = promptTemplate
-                    .replace('{{persona}}', personaData.description || personaEl.value)
-                    .replace('{{writingStyle}}', styleData.description || writingStyleEl.value)
-                    .replace('{{postTemplate}}', templateData.description || postTemplateEl.value)
-                    .replace('{{postContent}}', postContentEl.value.trim());
-
-                outputEl.textContent = prompt;
-                outputEl.style.backgroundColor = "#E3F2FD"; // Reset color to normal
-                outputEl.style.display = 'block';
-                copyButton.style.display = 'block';
-
-            } catch (error) {
-                showError(error.message);
-            } finally {
-                hideLoading(generateButton, "Generate Prompt");
-            }
-        });
-
-        addDataButton.addEventListener('click', function () {
-            const itemType = prompt("Enter the type (writingStyle, persona, postTemplate):");
-            if (!['writingStyle', 'persona', 'postTemplate'].includes(itemType)) {
-                alert("Invalid type entered.");
-                return;
-            }
-
-            const newValue = prompt("Enter the value (unique identifier):");
-            const newLabel = prompt("Enter the label (display text):");
-
-            if (!newValue || !newLabel) {
-                alert("Both value and label are required.");
-                return;
-            }
-
-            const newItem = { value: newValue, label: newLabel };
-
-            if (itemType === 'writingStyle') {
-                writingStyles.push(newItem);
-                populateSelect(writingStyleEl, writingStyles);
-            } else if (itemType === 'persona') {
-                personas.push(newItem);
-                populateSelect(personaEl, personas);
-            } else if (itemType === 'postTemplate') {
-                postTemplates.push(newItem);
-                populateSelect(postTemplateEl, postTemplates);
-            }
-
-            alert(`${itemType} added successfully!`);
-        });
-
-        copyButton.addEventListener('click', function () {
-            navigator.clipboard.writeText(outputEl.textContent).then(() => {
-                alert('Prompt copied to clipboard!');
-            }).catch(() => {
-                alert('Failed to copy to clipboard.');
-            });
-        });
-
-        async function generateHeyGenVideo() {
-            const url = "https://api.heygen.com/v2/video/generate";
-            const headers = {
-                "X-Api-Key": "Zjg3N2RkNzRmYjUyNDZhMGJkNTNmMTk5ZDAxMWVjYzktMTczODIzMjg3OA==",
-                "Content-Type": "application/json"
-            };
-            
-            const data = {
-                "video_inputs": [
-                    {
-                        "character": {
-                            "type": "avatar",
-                            "avatar_id": "Daisy-inskirt-20220818",
-                            "avatar_style": "normal"
-                        },
-                        "voice": {
-                            "type": "text",
-                            "input_text": document.getElementById('output').textContent.substring(0, 50) || 'Default text',
-                            "voice_id": "2d5b0e6cf36f460aa7fc47e3eee4ba54"
-                        },
-                        "background": {
-                            "type": "color",
-                            "value": "#008000"
-                        }
-                    }
-                ],
-                "dimension": {
-                    "width": 1280,
-                    "height": 720
-                }
-            };
-            
-            try {
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: headers,
-                    body: JSON.stringify(data)
+            function populateSelect(element, options) {
+                element.innerHTML = '<option value="">-- Select an option --</option>';
+                options.forEach(option => {
+                    const opt = document.createElement('option');
+                    opt.value = option.value;
+                    opt.textContent = option.label;
+                    element.appendChild(opt);
                 });
-                const result = await response.json();
-                alert(result);
-            } catch (error) {
-                alert("Error generating video:", error);
             }
-        }
 
-        populateSelect(writingStyleEl, writingStyles);
-        populateSelect(personaEl, personas);
-        populateSelect(postTemplateEl, postTemplates);
+            function fetchData(type, value) {
+                const filePath = `${type}/${value.replace(/\s+/g, '')}.json`;
+                return fetch(filePath)
+                    .then(response => response.ok ? response.json() : Promise.reject(`File not found: ${filePath}`))
+                    .catch(error => alert(error));
+            }
 
-        document.getElementById('generateVideoButton').addEventListener('click', generateHeyGenVideo); 
-    })();
+            function addNewItem() {
+                const itemType = prompt("Enter the type (writingStyle, persona, postTemplate):").trim();
+                if (!['writingStyle', 'persona', 'postTemplate'].includes(itemType)) {
+                    alert("Invalid type entered.");
+                    return;
+                }
+
+                const newValue = prompt("Enter the value (unique identifier):").trim();
+                const newLabel = prompt("Enter the label (display text):").trim();
+
+                if (!newValue || !newLabel) {
+                    alert("Both value and label are required.");
+                    return;
+                }
+
+                const newItem = { value: newValue, label: newLabel };
+
+                let list;
+                if (itemType === 'writingStyle') list = writingStyles;
+                if (itemType === 'persona') list = personas;
+                if (itemType === 'postTemplate') list = postTemplates;
+
+                if (list.some(item => item.value === newValue)) {
+                    alert("Item already exists!");
+                    return;
+                }
+
+                list.push(newItem);
+                populateSelect(itemType === 'writingStyle' ? writingStyleEl : itemType === 'persona' ? personaEl : postTemplateEl, list);
+                alert(`${itemType} added successfully!`);
+            }
+
+            function generatePrompt() {
+                const writingStyle = writingStyleEl.value;
+                const persona = personaEl.value;
+                const postTemplate = postTemplateEl.value;
+                const postContent = postContentEl.value.trim();
+
+				//This parts makes sure that all dropdown fields have been populated
+                if (!writingStyle || !persona || !postTemplate || !postContent) {
+                    alert("Please complete all fields before generating a prompt.");
+                    return;
+                }
+
+                fetch('prompts/prompt.txt')
+                    .then(response => response.text())
+                    .then(promptTemplate => {
+                        return Promise.all([
+                            fetchData('writingStyles', writingStyle),
+                            fetchData('personas', persona),
+                            fetchData('postTemplates', postTemplate)
+                        ]).then(([styleData, personaData, templateData]) => {
+                            outputEl.textContent = promptTemplate
+                                .replace('{{persona}}', personaData.description || persona)
+                                .replace('{{writingStyle}}', styleData.description || writingStyle)
+                                .replace('{{postTemplate}}', templateData.description || postTemplate)
+                                .replace('{{postContent}}', postContent);
+
+                            outputEl.style.display = 'block';
+                            copyButton.style.display = 'block';
+							return outputEl.textContent
+                        });
+                    })
+                    .catch(() => alert('Failed to load prompt template.'));
+            }
+
+			async function generateVideo() {
+				const apiKey = 'Zjg3N2RkNzRmYjUyNDZhMGJkNTNmMTk5ZDAxMWVjYzktMTczODIzMjg3OA=='; // Replace with your actual API key
+				const url = 'https://api.heygen.com/v2/video/generate';
+				const requestData = {
+					video_inputs: [
+						{
+							character: {
+								type: 'avatar',
+								avatar_id: 'Angela-inTshirt-20220820',
+								avatar_style: 'normal'
+							},
+							voice: {
+								type: 'text',
+								input_text: 'Welcome to the HeyGen API!',
+								voice_id: '1bd001e7e50f421d891986aad5158bc8',
+								speed: 1.1
+							}
+						}
+					],
+					dimension: {
+						width: 1280,
+						height: 720
+					}
+				};
+
+				try {
+					console.log('Sending request to API...');
+					const response = await fetch(url, {
+						method: 'POST',
+						headers: {
+							'X-Api-Key': apiKey,
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(requestData)
+					});
+					
+					const data = await response.json();
+					console.log('Response received:', data);
+					
+					if (response.ok && data.video_id) {
+						document.getElementById('result').innerText = 'Video ID: ' + data.video_id;
+					} else {
+						document.getElementById('result').innerText = 'Error: ' + (data.message || JSON.stringify(data));
+					}
+				} catch (error) {
+					console.error('Request failed:', error);
+					document.getElementById('result').innerText = 'Request failed: ' + error.message;
+				}
+			}
+
+			async function checkStatus() {
+				const apiKey = "Zjg3N2RkNzRmYjUyNDZhMGJkNTNmMTk5ZDAxMWVjYzktMTczODIzMjg3OA=="; // Replace with your actual API key
+				const videoId = "7db7ede1a3af43929560bcd5a015d034"; // Replace with your actual fixed video ID
+				fetch(`https://api.heygen.com/v1/video_status.get?video_id=${videoId}`, {
+					method: 'GET',
+					headers: {
+						'Accept': 'application/json',
+						'X-Api-Key': apiKey
+					}
+				})
+				.then(response => response.json())
+				.then(data => {
+					document.getElementById('status').innerText = `Status: ${data.data.status}`;
+					
+					if (data.data.video_url !== null) {
+						clearInterval(interval);
+						document.getElementById('videoContainer').innerHTML = `
+							<video width="640" height="360" controls>
+								<source src="${data.data.video_url}" type="video/mp4">
+								Your browser does not support the video tag.
+							</video>
+						`;
+						document.getElementById('videoLink').innerHTML = `<a href="${data.data.video_url}" target="_blank">Download Video</a>`;
+					}
+				})
+				.catch(error => console.error('Error:', error));
+			}
+
+			async function startChecking() {
+				alert('start checking')
+				document.getElementById('status').innerText = "Checking...";
+				interval = setInterval(checkStatus, 5000);
+			}
+	 
+            generateButton.addEventListener('click', generatePrompt);
+            addDataButton.addEventListener('click', addNewItem);
+			generateVideoButton.addEventListener('click', generateVideo);
+
+            copyButton.addEventListener('click', () => {
+                navigator.clipboard.writeText(outputEl.textContent).then(() => alert('Prompt copied!'));
+            });
+			
+			startCheckingButton.addEventListener('click', startChecking);
+			
+            populateSelect(writingStyleEl, writingStyles);
+            populateSelect(personaEl, personas);
+            populateSelect(postTemplateEl, postTemplates);
+        });
     </script>
 </body>
 </html>
+
